@@ -296,6 +296,64 @@ class GcodeAnalyzer {
         }
       }
 
+      // --- Small Bit Warning (bits under 1/8") ---
+      // Source: Easel articles warn that bits under 1/8" (especially under 1/16")
+      // need more conservative settings and are prone to breaking.
+      if (matchedTool.diameter && matchedTool.diameter < 0.125) {
+        result.issues.push({
+          level: 'warning',
+          category: 'Small Bit',
+          message: `${matchedTool.name} has a small cutting diameter (${matchedTool.diameterStr}). Bits under 1/8" require conservative settings — reduce depth per pass and feed rate to avoid breaking the delicate tip.`
+        });
+      } else if (matchedTool.diameter && matchedTool.diameter < 0.0625) {
+        result.issues.push({
+          level: 'warning',
+          category: 'Small Bit',
+          message: `${matchedTool.name} has a very small cutting diameter (${matchedTool.diameterStr}). Bits under 1/16" are extremely fragile. Use very conservative depth per pass and feed rate. Consider test runs on scrap material first.`
+        });
+      }
+
+      // --- Down-Cut Burning Risk ---
+      // Source: Easel articles note that down-cut bits push chips downward,
+      // making them prone to melting/burning, especially with many passes.
+      if (matchedTool.direction && matchedTool.direction.toLowerCase().includes('down')) {
+        result.info.push({
+          level: 'info',
+          category: 'Bit Direction',
+          message: `${matchedTool.name} is a down-cut bit. Down-cut bits push chips downward, which can cause melting or burning in materials prone to heat. They're good for thin materials (holds them down) but consider an up-cut bit for plastics or deep cuts.`
+        });
+      }
+
+      // --- Flute Count Implications ---
+      // Source: Easel articles explain that more flutes = smoother finish
+      // but need slower feed; fewer flutes = faster removal but rougher edges.
+      if (matchedTool.flutes) {
+        if (matchedTool.flutes >= 4) {
+          result.info.push({
+            level: 'info',
+            category: 'Flutes',
+            message: `${matchedTool.name} has ${matchedTool.flutes} flutes. More flutes produce a smoother edge finish but have less space for chip evacuation. Use a slower feed rate and avoid deep cuts in soft/meltable materials (plastics, HDPE).`
+          });
+        } else if (matchedTool.flutes <= 1) {
+          result.info.push({
+            level: 'info',
+            category: 'Flutes',
+            message: `${matchedTool.name} has ${matchedTool.flutes} flute. Single-flute bits excel at fast material removal and chip evacuation — great for soft plastics that melt easily. Edge finish will be rougher than multi-flute bits.`
+          });
+        }
+      }
+
+      // --- Pass Count Calculation ---
+      // Source: Easel articles: total passes = overall depth / depth per pass
+      if (toolData.maxDepthAbs > 0 && matchedTool.depthPerPass && matchedTool.depthPerPass > 0) {
+        const passCount = Math.ceil(toolData.maxDepthAbs / matchedTool.depthPerPass);
+        result.info.push({
+          level: 'info',
+          category: 'Pass Count',
+          message: `At max Z depth ${toolData.maxDepthAbs.toFixed(4)}" with recommended depth per pass of ${matchedTool.depthPerPass}", this tool would need approximately ${passCount} pass${passCount !== 1 ? 's' : ''}.`
+        });
+      }
+
       results.push(result);
     }
 

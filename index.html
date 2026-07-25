@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CNC Speeds & Feeds Analyzer</title>
-  <link rel="stylesheet" href="css/style.css?v=3">
+  <link rel="stylesheet" href="css/style.css?v=4">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
 </head>
 <body>
@@ -17,6 +17,7 @@
     <button class="tab active" data-tab="gcode">📋 Gcode Analyzer</button>
     <button class="tab" data-tab="calc">🧮 Speeds & Feeds Calculator</button>
     <button class="tab" data-tab="tools">📖 Tool Database</button>
+    <button class="tab" data-tab="ref">📚 Reference</button>
   </nav>
 
   <!-- ========== GCODE ANALYZER TAB ========== -->
@@ -126,6 +127,53 @@ G1 X10 F180
     </div>
   </section>
 
+  <!-- ========== REFERENCE TAB ========== -->
+  <section id="tab-ref" class="tab-content">
+    <div class="ref-container">
+      <h2>📚 CNC Reference Guide</h2>
+      <p class="small">Source: Easel/Inventables support articles on feeds, speeds, and milling bits.</p>
+
+      <!-- Sub-tabs for reference sections -->
+      <nav class="ref-subtabs">
+        <button class="ref-subtab active" data-ref="troubleshoot">🔧 Troubleshooting</button>
+        <button class="ref-subtab" data-ref="bittypes">🛠️ Bit Types</button>
+        <button class="ref-subtab" data-ref="formulas">📐 Formulas</button>
+        <button class="ref-subtab" data-ref="depth">📏 Depth Rules</button>
+        <button class="ref-subtab" data-ref="general">ℹ️ General Info</button>
+      </nav>
+
+      <div id="ref-troubleshoot" class="ref-section active">
+        <h3>🔧 Troubleshooting Guide</h3>
+        <p class="small">If your cut looks or sounds wrong, find the symptom and apply the fix.</p>
+        <div id="troubleshootTable"></div>
+      </div>
+
+      <div id="ref-bittypes" class="ref-section">
+        <h3>🛠️ Bit Types & When to Use Them</h3>
+        <div id="bitTypesList"></div>
+        <div id="fluteInfoBox"></div>
+        <div id="shankInfoBox"></div>
+      </div>
+
+      <div id="ref-formulas" class="ref-section">
+        <h3>📐 Speeds & Feeds Formulas</h3>
+        <div id="formulasList"></div>
+        <div id="chipLoadInfoBox"></div>
+      </div>
+
+      <div id="ref-depth" class="ref-section">
+        <h3>📏 Depth Per Pass Rules</h3>
+        <div id="depthRulesBox"></div>
+      </div>
+
+      <div id="ref-general" class="ref-section">
+        <h3>ℹ️ General Information</h3>
+        <div id="machineRigidityBox"></div>
+        <div id="spindleInfoBox"></div>
+      </div>
+    </div>
+  </section>
+
   <footer>
     <p class="small">
       CNC Speeds & Feeds Analyzer · 
@@ -134,11 +182,12 @@ G1 X10 F180
     </p>
   </footer>
 
-  <script src="js/tools.js?v=3"></script>
-  <script src="js/gcode-parser.js?v=3"></script>
-  <script src="js/analyzer.js?v=3"></script>
-  <script src="js/calculator.js?v=3"></script>
-  <script src="js/qa-engine.js?v=3"></script>
-  <script src="js/app.js?v=3"></script>
+  <script src="js/tools.js?v=4"></script>
+  <script src="js/gcode-parser.js?v=4"></script>
+  <script src="js/analyzer.js?v=4"></script>
+  <script src="js/calculator.js?v=4"></script>
+  <script src="js/qa-engine.js?v=4"></script>
+  <script src="js/reference-data.js?v=4"></script>
+  <script src="js/app.js?v=4"></script>
 </body>
 </html>

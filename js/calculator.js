@@ -6,6 +6,8 @@
 //   Feed Rate = RPM * flutes * chipLoad
 //   Chip Load = Feed Rate / (RPM * flutes)
 //   Ramp Down = Feed Rate / flutes
+//   Plunge Rate = Chip Load (30-50% of feed chip load) * flutes * RPM
+// Source: Easel/Inventables support articles
 
 const Calculator = {
   calculateSFM(rpm, diameter) {
@@ -28,34 +30,57 @@ const Calculator = {
     return feedRate / flutes;
   },
 
+  // Plunge rate uses 30-50% of the feed chip load
+  // Source: Easel "Calculating Your Cut Settings" article
+  calculatePlungeRate(rpm, flutes, feedChipLoad, plungePercent) {
+    const pct = plungePercent || 0.40; // default 40% (middle of 30-50%)
+    const plungeChipLoad = feedChipLoad * pct;
+    return rpm * flutes * plungeChipLoad;
+  },
+
   // Full calculation from inputs
   calculate(params) {
     const { rpm, diameter, flutes, chipLoad, feedRate, mode } = params;
     const result = {};
 
+    let actualRpm, actualChipLoad, actualFeedRate;
+
     if (mode === 'from-chipload') {
-      // User provides rpm, diameter, flutes, chipLoad → calculate feed rate
+      actualRpm = rpm;
+      actualChipLoad = chipLoad;
+      actualFeedRate = this.calculateFeedRate(rpm, flutes, chipLoad);
       result.sfm = this.calculateSFM(rpm, diameter);
-      result.feedRate = this.calculateFeedRate(rpm, flutes, chipLoad);
+      result.feedRate = actualFeedRate;
       result.chipLoad = chipLoad;
-      result.rampDown = this.calculateRampDown(result.feedRate, flutes);
     } else if (mode === 'from-feedrate') {
-      // User provides rpm, diameter, flutes, feedRate → calculate chip load
+      actualRpm = rpm;
+      actualFeedRate = feedRate;
+      actualChipLoad = this.calculateChipLoad(feedRate, rpm, flutes);
       result.sfm = this.calculateSFM(rpm, diameter);
       result.feedRate = feedRate;
-      result.chipLoad = this.calculateChipLoad(feedRate, rpm, flutes);
-      result.rampDown = this.calculateRampDown(feedRate, flutes);
+      result.chipLoad = actualChipLoad;
     } else if (mode === 'from-sfm') {
-      // User provides sfm, diameter, flutes, chipLoad → calculate rpm and feed rate
-      result.rpm = this.calculateRPM(params.sfm, diameter);
+      actualRpm = this.calculateRPM(params.sfm, diameter);
+      actualChipLoad = chipLoad;
+      actualFeedRate = this.calculateFeedRate(actualRpm, flutes, chipLoad);
+      result.rpm = actualRpm;
       result.sfm = params.sfm;
-      result.feedRate = this.calculateFeedRate(result.rpm, flutes, chipLoad);
+      result.feedRate = actualFeedRate;
       result.chipLoad = chipLoad;
-      result.rampDown = this.calculateRampDown(result.feedRate, flutes);
     }
+
+    // Ramp down
+    result.rampDown = this.calculateRampDown(actualFeedRate, flutes);
+
+    // Plunge rate at 30% and 50% of chip load (range)
+    result.plungeRate30 = this.calculatePlungeRate(actualRpm, flutes, actualChipLoad, 0.30);
+    result.plungeRate50 = this.calculatePlungeRate(actualRpm, flutes, actualChipLoad, 0.50);
 
     // Max recommended depth per pass = half the diameter
     result.maxDepthPerPass = diameter / 2;
+
+    // Small bit warning: bits under 1/8" need conservative settings
+    result.smallBitWarning = diameter < 0.125;
 
     // Find matching tools from the database by diameter + flutes
     result.matchingTools = [];

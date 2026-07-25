@@ -419,7 +419,26 @@ document.addEventListener('DOMContentLoaded', () => {
     html += calcRow('Feed Rate', Calculator.fmt(r.feedRate, 2), 'IPM');
     html += calcRow('Chip Load', Calculator.fmt(r.chipLoad, 6), 'in/tooth');
     html += calcRow('Ramp Down', Calculator.fmt(r.rampDown, 2), 'in/flute');
+
+    // Plunge rate range (30-50% of chip load)
+    html += '<div class="calc-result-row plunge">';
+    html += '<span class="label">Plunge Rate (30% chip load)</span>';
+    html += '<span><span class="value">' + Calculator.fmt(r.plungeRate30, 2) + '</span><span class="unit">IPM</span></span>';
+    html += '</div>';
+    html += '<div class="calc-result-row plunge">';
+    html += '<span class="label">Plunge Rate (50% chip load)</span>';
+    html += '<span><span class="value">' + Calculator.fmt(r.plungeRate50, 2) + '</span><span class="unit">IPM</span></span>';
+    html += '</div>';
+
     html += calcRow('Max Depth/Pass', Calculator.fmt(r.maxDepthPerPass, 4), 'in (half diameter)');
+
+    // Small bit warning
+    if (r.smallBitWarning) {
+      html += '<div class="calc-note"><strong>⚠️ Small Bit Warning:</strong> This bit is under 1/8". Use conservative depth per pass and feed rate to avoid breaking the tip. Consider test runs on scrap material first.</div>';
+    }
+
+    // Default chip load hint
+    html += '<div class="calc-note"><strong>💡 Chip Load Tip:</strong> If you don\'t know your bit\'s chip load, 0.003"–0.005" per tooth is a good starting range for most woodworking. Always check manufacturer specs first.</div>';
 
     // Matching tools
     if (r.matchingTools && r.matchingTools.length > 0) {
@@ -559,5 +578,141 @@ document.addEventListener('DOMContentLoaded', () => {
       analyzePasteBtn.click();
     }
   });
+
+  // ---- Reference Tab ----
+
+  // Sub-tab switching
+  const refSubtabs = document.querySelectorAll('.ref-subtab');
+  const refSections = document.querySelectorAll('.ref-section');
+
+  refSubtabs.forEach(subtab => {
+    subtab.addEventListener('click', () => {
+      refSubtabs.forEach(st => st.classList.remove('active'));
+      refSections.forEach(rs => rs.classList.remove('active'));
+      subtab.classList.add('active');
+      document.getElementById('ref-' + subtab.dataset.ref).classList.add('active');
+    });
+  });
+
+  // Render troubleshooting table
+  const troubleshootTable = document.getElementById('troubleshootTable');
+  if (troubleshootTable) {
+    let thtml = '<table class="troubleshoot-table"><thead><tr>';
+    thtml += '<th>Symptom</th><th>Likely Cause</th><th>Adjust This</th><th>Why It Works</th>';
+    thtml += '</tr></thead><tbody>';
+    for (const t of REFERENCE_DATA.troubleshooting) {
+      thtml += '<tr>';
+      thtml += '<td class="symptom">' + t.symptom + '</td>';
+      thtml += '<td>' + t.cause + '</td>';
+      thtml += '<td class="adjust">' + t.adjust + '</td>';
+      thtml += '<td>' + t.why + '</td>';
+      thtml += '</tr>';
+    }
+    thtml += '</tbody></table>';
+    troubleshootTable.innerHTML = thtml;
+  }
+
+  // Render bit types
+  const bitTypesList = document.getElementById('bitTypesList');
+  if (bitTypesList) {
+    let bhtml = '';
+    for (const bt of REFERENCE_DATA.bitTypes) {
+      bhtml += '<div class="bit-type-card">';
+      bhtml += '<div class="bit-header"><span class="bit-icon">' + bt.icon + '</span><span class="bit-name">' + bt.type + '</span></div>';
+      bhtml += '<div class="bit-desc">' + bt.description + '</div>';
+      bhtml += '<div class="bit-best">✅ Best for: ' + bt.bestFor + '</div>';
+      bhtml += '<div class="bit-caution">⚠️ Caution: ' + bt.caution + '</div>';
+      bhtml += '</div>';
+    }
+    bitTypesList.innerHTML = bhtml;
+  }
+
+  // Render flute info
+  const fluteInfoBox = document.getElementById('fluteInfoBox');
+  if (fluteInfoBox) {
+    let fhtml = '<div class="info-box"><h4>' + REFERENCE_DATA.fluteInfo.title + '</h4>';
+    for (const line of REFERENCE_DATA.fluteInfo.content) {
+      if (line === '') fhtml += '<br>';
+      else fhtml += '<p>' + line + '</p>';
+    }
+    fhtml += '</div>';
+    fluteInfoBox.innerHTML = fhtml;
+  }
+
+  // Render shank vs cutting info
+  const shankInfoBox = document.getElementById('shankInfoBox');
+  if (shankInfoBox) {
+    let shtml = '<div class="info-box"><h4>' + REFERENCE_DATA.shankVsCutting.title + '</h4>';
+    for (const line of REFERENCE_DATA.shankVsCutting.content) {
+      if (line === '') shtml += '<br>';
+      else shtml += '<p>' + line + '</p>';
+    }
+    shtml += '</div>';
+    shankInfoBox.innerHTML = shtml;
+  }
+
+  // Render formulas
+  const formulasList = document.getElementById('formulasList');
+  if (formulasList) {
+    let fhtml = '';
+    for (const f of REFERENCE_DATA.formulas) {
+      fhtml += '<div class="formula-row">';
+      fhtml += '<span class="formula-name">' + f.name + '</span>';
+      fhtml += '<span class="formula-eq">' + f.formula + '</span>';
+      fhtml += '</div>';
+    }
+    formulasList.innerHTML = fhtml;
+  }
+
+  // Render chip load defaults
+  const chipLoadInfoBox = document.getElementById('chipLoadInfoBox');
+  if (chipLoadInfoBox) {
+    let chtml = '<div class="info-box"><h4>' + REFERENCE_DATA.chipLoadDefaults.title + '</h4>';
+    for (const line of REFERENCE_DATA.chipLoadDefaults.content) {
+      if (line === '') chtml += '<br>';
+      else chtml += '<p>' + line + '</p>';
+    }
+    chtml += '</div>';
+    chipLoadInfoBox.innerHTML = chtml;
+  }
+
+  // Render depth rules
+  const depthRulesBox = document.getElementById('depthRulesBox');
+  if (depthRulesBox) {
+    let dhtml = '<div class="info-box"><h4>' + REFERENCE_DATA.depthRules.title + '</h4>';
+    for (const line of REFERENCE_DATA.depthRules.content) {
+      if (line === '') dhtml += '<br>';
+      else dhtml += '<p>' + line + '</p>';
+    }
+    dhtml += '</div>';
+    depthRulesBox.innerHTML = dhtml;
+  }
+
+  // Render machine rigidity
+  const machineRigidityBox = document.getElementById('machineRigidityBox');
+  if (machineRigidityBox) {
+    let mhtml = '<div class="info-box"><h4>' + REFERENCE_DATA.machineRigidity.title + '</h4>';
+    for (const line of REFERENCE_DATA.machineRigidity.content) {
+      if (line === '') mhtml += '<br>';
+      else mhtml += '<p>' + line + '</p>';
+    }
+    mhtml += '</div>';
+    machineRigidityBox.innerHTML = mhtml;
+  }
+
+  // Render spindle info
+  const spindleInfoBox = document.getElementById('spindleInfoBox');
+  if (spindleInfoBox) {
+    const si = REFERENCE_DATA.spindleInfo;
+    let shtml = '<div class="info-box"><h4>' + si.name + '</h4>';
+    shtml += '<table class="tool-table"><thead><tr><th>Setting</th><th>RPM</th></tr></thead><tbody>';
+    for (const s of si.settings) {
+      shtml += '<tr><td>' + s.setting + '</td><td>' + s.rpm.toLocaleString() + '</td></tr>';
+    }
+    shtml += '</tbody></table>';
+    shtml += '<p>' + si.note + '</p>';
+    shtml += '</div>';
+    spindleInfoBox.innerHTML = shtml;
+  }
 
 }); // DOMContentLoaded
