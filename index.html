@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CNC Speeds & Feeds Analyzer</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔧</text></svg>">
+</head>
+<body>
+  <header>
+    <h1>🔧 CNC Speeds & Feeds Analyzer</h1>
+    <p class="subtitle">Upload gcode, get tool-specific recommendations based on your CNC bit database</p>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="gcode">📋 Gcode Analyzer</button>
+    <button class="tab" data-tab="calc">🧮 Speeds & Feeds Calculator</button>
+    <button class="tab" data-tab="tools">📖 Tool Database</button>
+  </nav>
+
+  <!-- ========== GCODE ANALYZER TAB ========== -->
+  <section id="tab-gcode" class="tab-content active">
+    <div class="upload-zone">
+      <div class="drop-area" id="dropArea">
+        <div class="drop-icon">📁</div>
+        <p><strong>Drop gcode file here</strong> or click to browse</p>
+        <p class="small">Supports .nc, .gcode, .tap, .cnc, .txt files</p>
+        <input type="file" id="fileInput" accept=".nc,.gcode,.tap,.cnc,.txt" hidden>
+      </div>
+      <div class="paste-area">
+        <p class="small">...or paste gcode directly:</p>
+        <textarea id="gcodePaste" placeholder="G90 G94
+G17
+(Tool: Amana 46202-K)
+T1 M6
+S18000 M3
+G0 X0 Y0 Z0.5
+G1 Z-0.125 F180
+G1 X10 F180
+..."></textarea>
+        <button id="analyzePasteBtn" class="btn-primary">Analyze Pasted Gcode</button>
+      </div>
+    </div>
+
+    <div id="analysisResults" class="results-container hidden">
+      <h2>Analysis Results</h2>
+      <div id="summaryBar" class="summary-bar"></div>
+      <div id="resultsDetail"></div>
+    </div>
+  </section>
+
+  <!-- ========== CALCULATOR TAB ========== -->
+  <section id="tab-calc" class="tab-content">
+    <div class="calc-container">
+      <div class="calc-form">
+        <h2>Speeds & Feeds Calculator</h2>
+        <p class="small">Based on the standard formulas: SFM, RPM, Feed Rate, Chip Load, and Ramp Down.</p>
+
+        <div class="form-group">
+          <label>Calculation Mode</label>
+          <select id="calcMode">
+            <option value="from-chipload">From Chip Load (RPM + Diameter + Flutes + Chip Load → Feed Rate)</option>
+            <option value="from-feedrate">From Feed Rate (RPM + Diameter + Flutes + Feed Rate → Chip Load)</option>
+            <option value="from-sfm">From SFM (SFM + Diameter + Flutes + Chip Load → RPM + Feed Rate)</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="grp-rpm">
+          <label>Spindle Speed (RPM)</label>
+          <input type="number" id="inputRPM" placeholder="18000" step="100">
+        </div>
+
+        <div class="form-group" id="grp-sfm" style="display:none;">
+          <label>Surface Feet per Minute (SFM)</label>
+          <input type="number" id="inputSFM" placeholder="1179" step="0.1">
+        </div>
+
+        <div class="form-group">
+          <label>Tool Diameter (inches)</label>
+          <input type="number" id="inputDiameter" placeholder="0.25" step="0.001">
+        </div>
+
+        <div class="form-group">
+          <label>Number of Flutes</label>
+          <input type="number" id="inputFlutes" placeholder="2" step="1" min="1">
+        </div>
+
+        <div class="form-group" id="grp-chipload">
+          <label>Chip Load (in/tooth)</label>
+          <input type="number" id="inputChipLoad" placeholder="0.005" step="0.0001">
+        </div>
+
+        <div class="form-group" id="grp-feedrate" style="display:none;">
+          <label>Feed Rate (IPM)</label>
+          <input type="number" id="inputFeedRate" placeholder="180" step="0.1">
+        </div>
+
+        <button id="calcBtn" class="btn-primary">Calculate</button>
+        <button id="calcResetBtn" class="btn-secondary">Reset</button>
+      </div>
+
+      <div id="calcResults" class="calc-results hidden"></div>
+    </div>
+  </section>
+
+  <!-- ========== TOOL DATABASE TAB ========== -->
+  <section id="tab-tools" class="tab-content">
+    <div class="tools-container">
+      <h2>Tool Database</h2>
+      <p class="small">CNC bits from Rick's collection. Click a row to see full specs and the manufacturer page.</p>
+      <input type="text" id="toolSearch" placeholder="Search by name, part number, or diameter..." class="search-input">
+      <div id="toolsTable"></div>
+    </div>
+  </section>
+
+  <footer>
+    <p class="small">
+      CNC Speeds & Feeds Analyzer · 
+      <a href="https://github.com/kingclaw-king0770/cnc-speeds-feeds" target="_blank">GitHub</a> ·
+      Spindle: Makita RT0701C (10,000–30,000 RPM)
+    </p>
+  </footer>
+
+  <script src="js/tools.js"></script>
+  <script src="js/gcode-parser.js"></script>
+  <script src="js/analyzer.js"></script>
+  <script src="js/calculator.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
