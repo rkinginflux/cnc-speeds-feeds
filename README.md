@@ -1,5 +1,7 @@
 # CNC Speeds & Feeds Analyzer
 
+**Live site: https://rkinginflux.github.io/cnc-speeds-feeds/**
+
 A web-based tool for CNC woodworkers to:
 1. **Upload gcode files** and get tool-specific feed rate, spindle speed, and depth-per-pass recommendations
 2. **Calculate speeds & feeds** using standard CNC formulas (SFM, RPM, Feed Rate, Chip Load, Ramp Down)
