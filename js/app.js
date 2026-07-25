@@ -278,15 +278,26 @@ document.addEventListener('DOMContentLoaded', () => {
   function askQuestion() {
     const question = qaInput.value.trim();
     if (!question) return;
+    addQaMessage('question', question);
+
     if (!currentQaEngine) {
-      addQaMessage('question', question);
-      addQaMessage('answer', 'Please analyze some gcode first, then ask questions about it.');
+      console.error('Q&A engine not initialized. currentQaEngine is null.', {
+        currentParsed: !!currentParsed,
+        currentAnalysis: !!currentAnalysis,
+        analysisResultsVisible: !analysisResults.classList.contains('hidden')
+      });
+      addQaMessage('answer', 'I need to analyze some gcode first before I can answer questions. Please paste or upload gcode above and click "Analyze Pasted Gcode", then try your question again.');
+      qaInput.value = '';
       return;
     }
 
-    addQaMessage('question', question);
-    const answer = currentQaEngine.ask(question);
-    addQaMessage('answer', answer);
+    try {
+      const answer = currentQaEngine.ask(question);
+      addQaMessage('answer', answer);
+    } catch (err) {
+      console.error('Q&A engine error:', err);
+      addQaMessage('answer', 'Sorry, something went wrong processing that question. Error: ' + err.message + '. Try rephrasing or type "help" for examples.');
+    }
 
     qaInput.value = '';
     qaInput.focus();

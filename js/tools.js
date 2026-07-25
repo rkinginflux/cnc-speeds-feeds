@@ -54,7 +54,7 @@ const TOOL_DATABASE = [
   },
   {
     id: "amana-45771-k",
-    name: "Amana 45771-K",
+    name: "Amana-45771-K",
     partNumber: "45771-K",
     flutes: null,
     direction: "",
