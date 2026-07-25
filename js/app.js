@@ -24,6 +24,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const summaryBar = document.getElementById('summaryBar');
   const resultsDetail = document.getElementById('resultsDetail');
 
+  // Q&A state
+  let currentQaEngine = null;
+  let currentParsed = null;
+  let currentAnalysis = null;
+
+  // Q&A elements
+  const qaInput = document.getElementById('qaInput');
+  const qaAskBtn = document.getElementById('qaAskBtn');
+  const qaConversation = document.getElementById('qaConversation');
+  const qaSuggestions = document.getElementById('qaSuggestions');
+
   // Drop area click to browse
   dropArea.addEventListener('click', () => fileInput.click());
 
@@ -197,6 +208,15 @@ document.addEventListener('DOMContentLoaded', () => {
       resultsDetail.appendChild(generalCard);
     }
 
+    // Initialize Q&A engine with this analysis
+    currentParsed = parsed;
+    currentAnalysis = analysis;
+    currentQaEngine = new QaEngine(parsed, analysis, TOOL_DATABASE);
+
+    // Reset Q&A conversation
+    qaConversation.innerHTML = '';
+    renderQaSuggestions();
+
     // Scroll to results
     analysisResults.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
@@ -207,6 +227,109 @@ document.addEventListener('DOMContentLoaded', () => {
     chip.textContent = text;
     return chip;
   }
+
+  // ---- Q&A Engine ----
+
+  // Generate contextual suggestion pills based on the analyzed gcode
+  function renderQaSuggestions() {
+    if (!currentAnalysis || currentAnalysis.toolResults.length === 0) {
+      qaSuggestions.innerHTML = '';
+      return;
+    }
+
+    const suggestions = [];
+    const firstTool = currentAnalysis.toolResults[0];
+    const firstToolName = firstTool.matchedTool ? firstTool.matchedTool.name : 'tool ' + firstTool.toolNumber;
+    const firstFeedRate = firstTool.feedRates.length > 0 ? firstTool.feedRates[0] : null;
+
+    // Always show these
+    suggestions.push('What tools are being used?');
+    suggestions.push('Which tools have warnings?');
+    suggestions.push('Give me a summary');
+
+    // Tool-specific suggestions
+    if (firstFeedRate !== null && firstTool.matchedTool) {
+      suggestions.push(`Is the feed rate of ${firstFeedRate} recommended for ${firstToolName}?`);
+    }
+    if (firstTool.matchedTool) {
+      suggestions.push(`What is the chip load for tool ${firstTool.toolNumber}?`);
+      suggestions.push(`What is the max depth for tool ${firstTool.toolNumber}?`);
+    }
+
+    // If there are warnings, add a suggestion about them
+    if (currentAnalysis.summary.warnings > 0) {
+      suggestions.push(`What are the warnings for tool ${firstTool.toolNumber}?`);
+    }
+
+    // Render pills
+    qaSuggestions.innerHTML = '';
+    for (const s of suggestions.slice(0, 6)) {
+      const pill = document.createElement('span');
+      pill.className = 'qa-suggestion-pill';
+      pill.textContent = s;
+      pill.addEventListener('click', () => {
+        qaInput.value = s;
+        askQuestion();
+      });
+      qaSuggestions.appendChild(pill);
+    }
+  }
+
+  function askQuestion() {
+    const question = qaInput.value.trim();
+    if (!question) return;
+    if (!currentQaEngine) {
+      addQaMessage('question', question);
+      addQaMessage('answer', 'Please analyze some gcode first, then ask questions about it.');
+      return;
+    }
+
+    addQaMessage('question', question);
+    const answer = currentQaEngine.ask(question);
+    addQaMessage('answer', answer);
+
+    qaInput.value = '';
+    qaInput.focus();
+  }
+
+  function addQaMessage(role, text) {
+    const msg = document.createElement('div');
+    msg.className = 'qa-message';
+
+    if (role === 'question') {
+      msg.innerHTML = `
+        <div class="qa-q">
+          <div class="avatar">🧑</div>
+          <div class="text">${escapeHtml(text)}</div>
+        </div>
+      `;
+    } else {
+      msg.innerHTML = `
+        <div class="qa-a">
+          <div class="avatar">🤖</div>
+          <div class="text">${escapeHtml(text)}</div>
+        </div>
+      `;
+    }
+
+    qaConversation.appendChild(msg);
+    qaConversation.scrollTop = qaConversation.scrollHeight;
+  }
+
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  // Q&A event listeners
+  qaAskBtn.addEventListener('click', askQuestion);
+  qaInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      askQuestion();
+    }
+  });
 
   // ---- Calculator ----
   const calcMode = document.getElementById('calcMode');

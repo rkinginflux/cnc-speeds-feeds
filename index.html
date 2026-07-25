@@ -47,6 +47,18 @@ G1 X10 F180
       <h2>Analysis Results</h2>
       <div id="summaryBar" class="summary-bar"></div>
       <div id="resultsDetail"></div>
+
+      <!-- Q&A Section -->
+      <div id="qaSection" class="qa-section">
+        <h2>💬 Ask a Question</h2>
+        <p class="small">Ask about feed rates, spindle speeds, chip load, depth, warnings, or which tools are being used. Type "help" for examples.</p>
+        <div class="qa-input-row">
+          <input type="text" id="qaInput" placeholder="e.g. Is the feed rate of 180 recommended for Amana 46202-K?" autocomplete="off">
+          <button id="qaAskBtn" class="btn-primary">Ask</button>
+        </div>
+        <div id="qaSuggestions" class="qa-suggestions"></div>
+        <div id="qaConversation" class="qa-conversation"></div>
+      </div>
     </div>
   </section>
 
@@ -126,6 +138,7 @@ G1 X10 F180
   <script src="js/gcode-parser.js"></script>
   <script src="js/analyzer.js"></script>
   <script src="js/calculator.js"></script>
+  <script src="js/qa-engine.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>
